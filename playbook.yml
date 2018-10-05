@@ -22,6 +22,8 @@
     command: "dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo"
     changed_when: false
 
+# TODO: fish repo
+
   - name: enable copr repos
     command: "dnf copr enable {{ item }}"
     changed_when: false
@@ -55,6 +57,7 @@
       - snapd
       - kubernetes-client
       - docker
+      - fish
       # Fonts
       - fira-code-fonts
       - fontawesome-fonts
@@ -83,5 +86,6 @@
     command: "fc-cache -f -v"
     changed_when: false
 
-
+# TODO: omf https://github.com/oh-my-fish/oh-my-fish
 # TODO: themes, icons
+# TODO: dot files https://github.com/rmb938/dotfiles
