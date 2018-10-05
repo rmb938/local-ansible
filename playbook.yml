@@ -20,19 +20,35 @@
 
   - name: setup docker repo
     command: "dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo"
-    changed_when: false
+    args:
+      creates: /etc/yum.repos.d/docker-ce.repo
+    check_mode: no
 
-# TODO: fish repo
+  - name: setup vscode repo
+    yum_repository:
+      name: vscode
+      description: Visual Studio Code
+      baseurl: https://packages.microsoft.com/yumrepos/vscode
+      gpgcheck: yes
+      gpgkey: https://packages.microsoft.com/keys/microsoft.asc
+
+  - name: import vscode repo gpg key
+    rpm_key:
+      key: https://packages.microsoft.com/keys/microsoft.asc
+      state: present
 
   - name: enable copr repos
-    command: "dnf copr enable {{ item }}"
-    changed_when: false
+    command: "dnf copr enable -y {{ item }}"
+    args:
+      creates: /etc/yum.repos.d/_copr_{{ item | replace("/", "-") }}.repo
     with_items:
       - yaroslav/i3desktop
       - ianhattendorf/desktop
       - dawid/better_fonts
       - wyvie/i3blocks
       - evana/fira-code-fonts
+      - tcg/themes
+    check_mode: no
 
   - name: install packages
     dnf:
@@ -51,31 +67,35 @@
       - scrot
       - golang
       - Thunar
-      - tillix
+      - tilix
       - jq
       - tumbler
       - snapd
       - kubernetes-client
-      - docker
+      - docker-ce
       - fish
+      - code
       # Fonts
       - fira-code-fonts
       - fontawesome-fonts
+      # Themes
+      - arc-theme
+      - la-capitaine-icon-theme
 
   - name: enable docker
     systemd:
       name: docker
       enabled: True
 
-  - name: create font directory
+  - name: create system-san-francisco font directory
     file:
       path: /usr/share/fonts/system-san-francisco/
       state: directory
 
-  - name: download fonts
+  - name: download system-san-francisco fonts
     get_url:
       url: '{{ item }}'
-      dest: '/usr/share/fonts/system-san-francisco/{{ item }}'
+      dest: '/usr/share/fonts/system-san-francisco/'
     with_items:
       - 'https://raw.githubusercontent.com/supermarin/YosemiteSanFranciscoFont/master/System%20San%20Francisco%20Display%20Bold.ttf'
       - 'https://raw.githubusercontent.com/supermarin/YosemiteSanFranciscoFont/master/System%20San%20Francisco%20Display%20Regular.ttf'
@@ -86,6 +106,23 @@
     command: "fc-cache -f -v"
     changed_when: false
 
-# TODO: omf https://github.com/oh-my-fish/oh-my-fish
-# TODO: themes, icons
+  - name: create icons
+    file:
+      path: ~/.icons
+      state: directory
+    become: no
+
+  - name: create themes
+    file:
+      path: ~/.themes
+      state: directory
+    become: no
+
+  - name: install omf
+    command: 'curl -L https://get.oh-my.fish | fish'
+    args:
+      creates: ~/.config/fish/conf.d/omf.fish 
+    become: no
+    check_mode: no
+
 # TODO: dot files https://github.com/rmb938/dotfiles
