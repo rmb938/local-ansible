@@ -75,12 +75,23 @@
       - docker-ce
       - fish
       - code
+      - vlc
+      - firefox
       # Fonts
       - fira-code-fonts
       - fontawesome-fonts
       # Themes
       - arc-theme
       - la-capitaine-icon-theme
+
+  - name: install snaps
+    command: snap install {{ item }}
+    with_items:
+      - discord
+      - slack
+      - hugo
+      - intellij-idea-ultimate --classic
+      - goland --classic
 
   - name: enable docker
     systemd:
