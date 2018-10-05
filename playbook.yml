@@ -1,0 +1,87 @@
+---
+- name: provision local fedora machine
+  hosts: 127.0.0.1
+  connection: local
+  become: yes
+  tasks:
+  - name: install dependencies
+    dnf:
+      name: '{{ item }}'
+      state: latest
+    with_items:
+      - dnf-plugins-core
+
+  - name: setup rpm fusion repo
+    dnf:
+      name: '{{ item }}'
+      state: present
+    with_items:
+      - 'https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-28.noarch.rpm'
+
+  - name: setup docker repo
+    command: "dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo"
+    changed_when: false
+
+  - name: enable copr repos
+    command: "dnf copr enable {{ item }}"
+    changed_when: false
+    with_items:
+      - yaroslav/i3desktop
+      - ianhattendorf/desktop
+      - dawid/better_fonts
+      - wyvie/i3blocks
+      - evana/fira-code-fonts
+
+  - name: install packages
+    dnf:
+      name: '{{ item }}'
+      state: latest
+    with_items:
+      # i3
+      - i3
+      - i3status
+      - i3blocks
+      - feh
+      - rofi
+      - redshift
+      - compton
+      # Programs
+      - scrot
+      - golang
+      - Thunar
+      - tillix
+      - jq
+      - tumbler
+      - snapd
+      - kubernetes-client
+      - docker
+      # Fonts
+      - fira-code-fonts
+      - fontawesome-fonts
+
+  - name: enable docker
+    systemd:
+      name: docker
+      enabled: True
+
+  - name: create font directory
+    file:
+      path: /usr/share/fonts/system-san-francisco/
+      state: directory
+
+  - name: download fonts
+    get_url:
+      url: '{{ item }}'
+      dest: '/usr/share/fonts/system-san-francisco/{{ item }}'
+    with_items:
+      - 'https://raw.githubusercontent.com/supermarin/YosemiteSanFranciscoFont/master/System%20San%20Francisco%20Display%20Bold.ttf'
+      - 'https://raw.githubusercontent.com/supermarin/YosemiteSanFranciscoFont/master/System%20San%20Francisco%20Display%20Regular.ttf'
+      - 'https://raw.githubusercontent.com/supermarin/YosemiteSanFranciscoFont/master/System%20San%20Francisco%20Display%20Thin.ttf'
+      - 'https://raw.githubusercontent.com/supermarin/YosemiteSanFranciscoFont/master/System%20San%20Francisco%20Display%20Ultralight.ttf'
+
+  - name: refresh font cache
+    command: "fc-cache -f -v"
+    changed_when: false
+
+
+# TODO: themes, icons
