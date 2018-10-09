@@ -66,6 +66,7 @@
       # Programs
       - scrot
       - golang
+      - golang-googlecode-tools-goimports
       - Thunar
       - tilix
       - jq
