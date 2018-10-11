@@ -131,10 +131,38 @@
     become: no
 
   - name: install omf
-    command: 'curl -L https://get.oh-my.fish | fish'
+    shell: 'curl -L https://get.oh-my.fish | fish'
     args:
       creates: ~/.config/fish/conf.d/omf.fish 
     become: no
     check_mode: no
 
-# TODO: dot files https://github.com/rmb938/dotfiles
+  - name: init dotfiles
+    command: "git init"
+    args:
+      chdir: '~'
+      creates: '~/.git/config'
+    become: no
+    check_mode: no
+
+  - name: add dotfiles remote
+    shell: "git remote get-url origin || git remote add origin git@github.com:rmb938/dotfiles.git"
+    args:
+      chdir: '~'
+    become: no
+
+  - name: fetch dotfiles remote
+    command: "git fetch origin"
+    args:
+      chdir: '~'
+      creates: '~/.git/refs/remotes/origin/master'
+    become: no
+    check_mode: no
+
+  - name: reset dotfiles to remote
+    command: "git reset --hard origin/master"
+    args:
+      chdir: '~'
+      creates: '~/.gitignore_global'
+    become: no
+    check_mode: no
